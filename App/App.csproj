@@ -22,7 +22,6 @@
   <ItemGroup>
     <Folder Include="Features\BookingManagement\Persistence\" />
     <Folder Include="Features\BookingManagement\Presentation\" />
-    <Folder Include="Features\UserManagement\Persistence\" />
     <Folder Include="Features\UserManagement\Presentation\" />
     <Folder Include="obj\Debug\net8.0\" />
   </ItemGroup>

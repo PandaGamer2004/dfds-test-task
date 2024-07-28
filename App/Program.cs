@@ -1,3 +1,8 @@
+using DfdsTestTask.Features.Encryption.Implementations;
+using DfdsTestTask.Features.Encryption.Interfaces;
+using DfdsTestTask.Features.Encryption.Models;
+using DfdsTestTask.Features.UserManagement.Persistence.Implementations;
+using DfdsTestTask.Features.UserManagement.Persistence.Interfaces;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -18,6 +23,24 @@ builder.Services.AddSwaggerGen(options => { options.SwaggerDoc("v1", new OpenApi
         }
     });
 });
+
+
+
+builder.Services.AddSingleton<
+    IEncryptionConfigurationLoader<SymmetricEncryptionContext>,
+    FromConfigurationSymmetricContextEncryptionLoader
+>();
+
+
+builder.Services.AddSingleton<
+    ISymmetricStringDataEncryptor,
+    AesStringDataEncryptor
+>();
+
+builder.Services.AddScoped<
+    IUserRepository, 
+    UserRepository
+>();
 
 builder.Services.AddControllers();
 

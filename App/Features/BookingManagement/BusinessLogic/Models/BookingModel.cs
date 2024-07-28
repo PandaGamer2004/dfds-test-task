@@ -4,7 +4,7 @@ using DfdsTestTask.Features.UserManagement.BusinessLogic.Models;
 
 namespace DfdsTestTask.Features.BookingManagement.BusinessLogic.Models;
 
-public class BookingModel: VersionedAggregate
+public class BookingModel: VersionedAggregate<int>
 {
     public int Id { get; set; }
     

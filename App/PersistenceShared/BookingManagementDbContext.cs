@@ -10,8 +10,6 @@ public class BookingManagementDbContext: DbContext
 
     public DbSet<BookingEntity> Bookings { get; set; }
 
-
-    public DbSet<UserToBookingEntity> UserToBooking { get; set; }
     
     
     public BookingManagementDbContext(
@@ -20,5 +18,11 @@ public class BookingManagementDbContext: DbContext
     {
         
     }
-    
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<BookingEntity>()
+            .Property(it => it.AggregateVersion)
+            .HasDefaultValue(1);
+    }
 }
