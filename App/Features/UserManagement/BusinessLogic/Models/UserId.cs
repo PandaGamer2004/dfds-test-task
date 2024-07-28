@@ -5,6 +5,6 @@ namespace DfdsTestTask.Features.UserManagement.BusinessLogic.Models;
 public class UserId: EntityID
 {
     public static UserId FromValue(int userId)
-        => (UserId)FromValue(userId, typeof(UserModel));
+        => FromValue(new UserId(), userId, typeof(UserModel));
     
 }

@@ -41,6 +41,7 @@ public class UserRepository(
         try
         {
             var targetUserEntity = await bookingManagementDbContext.Users
+                .AsNoTracking()
                 .SingleOrDefaultAsync(
                     user => user.Id == userId.Value, 
                     cancellationToken: ct
@@ -68,7 +69,9 @@ public class UserRepository(
         try
         { 
             var storedUsers 
-                = await bookingManagementDbContext.Users.ToListAsync(ct);
+                = await bookingManagementDbContext.Users
+                    .AsNoTracking()
+                    .ToListAsync(ct);
             return storedUsers.Select(ProjectUser);
         }
         catch (Exception ex)
@@ -89,6 +92,7 @@ public class UserRepository(
         {
             var targetBooking = await bookingManagementDbContext.Bookings
                 .Include(booking => booking.Users)
+                .AsNoTracking()
                 .SingleOrDefaultAsync(booking => booking.Id == bookingId.Value, cancellationToken: ct);
 
             if (targetBooking == null)
@@ -112,6 +116,7 @@ public class UserRepository(
         try
         {
             var targetUser = await bookingManagementDbContext.Users
+                .AsNoTracking()
                 .SingleOrDefaultAsync(
                     user => user.Id == bookingId.Value, 
                     cancellationToken: ct

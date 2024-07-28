@@ -5,5 +5,5 @@ namespace DfdsTestTask.Features.BookingManagement.BusinessLogic.Models;
 public class BookingId: EntityID
 {
     public static BookingId FromValue(int id)
-        => (BookingId)FromValue(id, typeof(BookingModel));
+        => FromValue(new BookingId(), id, typeof(BookingModel));
 }
