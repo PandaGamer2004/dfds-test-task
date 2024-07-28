@@ -4,11 +4,12 @@ namespace DfdsTestTask.Features.Shared.Models;
 
 public class EntityID
 {
-    public int Value { get; init; }
+    public int Value { get; private set; }
 
     public Type RefferenceTo { get; private set; }
     
-    protected static EntityID FromValue(int userId, Type type)
+    protected static TEntity FromValue<TEntity>(TEntity atEntity, int userId, Type type)
+    where TEntity: EntityID
     {
         if (userId == 0)
         {
@@ -18,10 +19,8 @@ public class EntityID
             );
         }
 
-        return new EntityID()
-        {
-            RefferenceTo = type,
-            Value = userId
-        };
+        atEntity.RefferenceTo = type;
+        atEntity.Value = userId;
+        return atEntity;
     }
 }
