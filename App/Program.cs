@@ -1,5 +1,14 @@
+using DfdsTestTask.Exceptions;
+using DfdsTestTask.Features.Encryption.Implementations;
+using DfdsTestTask.Features.Encryption.Interfaces;
+using DfdsTestTask.Features.Encryption.Models;
+using DfdsTestTask.Features.UserManagement.BusinessLogic.Implementations;
+using DfdsTestTask.Features.UserManagement.BusinessLogic.Interfaces;
+using DfdsTestTask.Features.UserManagement.Persistence.Implementations;
+using DfdsTestTask.Features.UserManagement.Persistence.Interfaces;
+using DfdsTestTask.PersistenceShared;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +27,44 @@ builder.Services.AddSwaggerGen(options => { options.SwaggerDoc("v1", new OpenApi
         }
     });
 });
+
+
+
+builder.Services.AddDbContext<BookingManagementDbContext>(options =>
+{
+    const string sqlServerConnectionStringPath = "ConnectionStrings:mssql";
+    string? sqlConnectionString = builder.Configuration[sqlServerConnectionStringPath];
+
+    if (sqlConnectionString is null)
+    {
+        throw new IncompleteAppConfigurationException(
+            configurationSection: sqlServerConnectionStringPath
+            );
+    }
+    
+    options.UseSqlServer(sqlConnectionString);
+});
+builder.Services.AddSingleton<
+    IEncryptionConfigurationLoader<SymmetricEncryptionContext>,
+    FromConfigurationSymmetricContextEncryptionLoader
+>();
+
+
+builder.Services.AddSingleton<
+    ISymmetricStringDataEncryptor,
+    AesStringDataEncryptor
+>();
+
+builder.Services.AddScoped<
+    IUserRepository, 
+    UserRepository
+>();
+
+
+builder.Services.AddScoped<
+    IUserService, 
+    UserService
+>();
 
 builder.Services.AddControllers();
 

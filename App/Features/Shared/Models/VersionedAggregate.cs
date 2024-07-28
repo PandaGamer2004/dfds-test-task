@@ -1,6 +1,6 @@
 namespace DfdsTestTask.Features.Shared.Models;
 
-public abstract class VersionedAggregate
+public abstract class VersionedAggregate<TVersion>
 {
-    public int AggregateVersion { get; set; }
+    public TVersion AggregateVersion { get; set; }
 }
