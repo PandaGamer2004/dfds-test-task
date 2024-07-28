@@ -5,6 +5,11 @@ namespace DfdsTestTask.Features.UserManagement.BusinessLogic.Interfaces;
 
 public interface IUserService
 {
+
+    Task<BusinessOperationResult<UserIdsValidationResult, string>> ValidateUserIds(
+        IEnumerable<UserId> userIds, 
+        CancellationToken ct = default
+        );
     Task<BusinessOperationResult<VoidResult, string>> CreateUser(
         UserCreationModel userCreationModel,
         CancellationToken ct = default

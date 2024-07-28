@@ -17,7 +17,7 @@ public class UsersController(
     {
         var usersListResult
             = await userService.ListUsers(CancellationToken.None)
-                .UnwrapAsync(ProjectResponse);
+                .UnwrapAsync(ResponseUtilities.ProjectResponse);
         return usersListResult.Success;
     }
 
@@ -25,7 +25,7 @@ public class UsersController(
     public async Task<IActionResult> ListUsersById([FromRoute]int bookingId)
     {
         var listByBookingResult = await userService.ListUsersForBooking(bookingId)
-            .UnwrapAsync(ProjectResponse);
+            .UnwrapAsync(ResponseUtilities.ProjectResponse);
         return listByBookingResult.Success;
     }
 
@@ -33,7 +33,7 @@ public class UsersController(
     public async Task<IActionResult> CreateUser([FromBody]UserCreationModel userCreationModel)
     {
         var userCreationResult = await userService.CreateUser(userCreationModel)
-            .UnwrapAsync(ProjectResponse);
+            .UnwrapAsync(ResponseUtilities.ProjectResponse);
         return userCreationResult.Success;
     }
 
@@ -41,7 +41,7 @@ public class UsersController(
     public async Task<IActionResult> DeleteUser([FromRoute]int userId)
     {
         var userDeletionResult = await userService.DeleteUser(userId)
-            .UnwrapAsync(ProjectResponse);
+            .UnwrapAsync(ResponseUtilities.ProjectResponse);
         return userDeletionResult.Success;
     }
 
@@ -49,23 +49,11 @@ public class UsersController(
     public async Task<IActionResult> UpdateUser([FromBody]UserOutboundModel userModel)
     {
         var userUpdateResult = await userService.UpdateUser(userModel)
-            .UnwrapAsync(ProjectResponse);
+            .UnwrapAsync(ResponseUtilities.ProjectResponse);
         return userUpdateResult.Success;
     }
 
     
-    private BusinessOperationResult<IActionResult, NoError> ProjectResponse<TResult>(
-        BusinessOperationResult<TResult, string> operationResult
-        )
-        => operationResult.Map(res =>
-            {
-                if (res is VoidResult)
-                {
-                    return (IActionResult)Ok();
-                }
 
-                return (IActionResult)Ok(res);
-            })
-            .ProjectError(err => (IActionResult)BadRequest(err));
     
 }

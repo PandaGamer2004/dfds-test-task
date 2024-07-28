@@ -6,7 +6,7 @@ namespace DfdsTestTask.Features.BookingManagement.BusinessLogic.Models;
 
 public class BookingModel: VersionedAggregate<int>
 {
-    public int Id { get; set; }
+    public BookingId Id { get; set; }
     
     public DateTime BookingDate { get; set; }
 

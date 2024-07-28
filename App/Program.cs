@@ -1,11 +1,14 @@
 using DfdsTestTask.Exceptions;
+using DfdsTestTask.Features.BookingManagement.BusinessLogic;
+using DfdsTestTask.Features.BookingManagement.BusinessLogic.Implementations;
+using DfdsTestTask.Features.BookingManagement.BusinessLogic.Interfaces;
+using DfdsTestTask.Features.BookingManagement.Persistence;
 using DfdsTestTask.Features.Encryption.Implementations;
 using DfdsTestTask.Features.Encryption.Interfaces;
 using DfdsTestTask.Features.Encryption.Models;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Implementations;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Interfaces;
-using DfdsTestTask.Features.UserManagement.Persistence.Implementations;
-using DfdsTestTask.Features.UserManagement.Persistence.Interfaces;
+using DfdsTestTask.Features.UserManagement.Persistence;
 using DfdsTestTask.PersistenceShared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -66,6 +69,16 @@ builder.Services.AddScoped<
     UserService
 >();
 
+builder.Services.AddScoped<
+    IBookingService, 
+    BookingService
+>();
+
+builder.Services.AddScoped<
+    IBookingRepository, 
+    BookingRepository
+>();
+
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -76,6 +89,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
 
 app.UseHttpsRedirection();
 app.MapControllers();

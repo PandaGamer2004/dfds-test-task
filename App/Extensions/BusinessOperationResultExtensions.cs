@@ -4,9 +4,9 @@ namespace DfdsTestTask.Extensions;
 
 public static class BusinessOperationResultExtensions
 {
-    public static async Task<BusinessOperationResult<TResult2, TError2>> UnwrapAsync<TResult, TResult2, TError, TError2>(
+    public static async Task<TResult2> UnwrapAsync<TResult, TResult2, TError>(
         this Task<BusinessOperationResult<TResult, TError>> task,
-        Func<BusinessOperationResult<TResult, TError>, BusinessOperationResult<TResult2, TError2>> projector)
+        Func<BusinessOperationResult<TResult, TError>, TResult2> projector)
     {
         var result = await task;
         return projector(result);
@@ -39,6 +39,19 @@ public static class BusinessOperationResultExtensions
             );
     }
 
+    public static Task<BusinessOperationResult<TResult2, TError>> FlatMapAsync<TResult, TResult2, TError>(
+        this BusinessOperationResult<TResult, TError> result,
+        Func<TResult, Task<BusinessOperationResult<TResult2, TError>>> projector)
+    {
+        if (result.IsSuccess)
+        {
+            return projector(result.Success);
+        }
+        return Task.FromResult(BusinessOperationResult<TResult2, TError>.CreateError(
+            result.Error
+        ));
+    }
+    
     public static BusinessOperationResult<TResult2, TError> FlatMap<TResult, TResult2, TError>(
         this BusinessOperationResult<TResult, TError> result,
         Func<TResult, BusinessOperationResult<TResult2, TError>> projector)
