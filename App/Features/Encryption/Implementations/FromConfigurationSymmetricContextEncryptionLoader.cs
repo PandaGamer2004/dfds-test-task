@@ -16,7 +16,7 @@ public class FromConfigurationSymmetricContextEncryptionLoader(IConfiguration co
         if (targetConfigurationSection is null)
         {
             throw new IncompleteAppConfigurationException(
-                $"Missing configuration section: {SecretKeyConfigurationSection}"
+                configurationSection: SecretKeyConfigurationSection
                 );
         }
 

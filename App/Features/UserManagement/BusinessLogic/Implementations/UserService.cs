@@ -1,11 +1,11 @@
 using DfdsTestTask.Exceptions;
+using DfdsTestTask.Features.BookingManagement.BusinessLogic.Models;
 using DfdsTestTask.Features.Encryption.Interfaces;
 using DfdsTestTask.Features.Encryption.Models;
 using DfdsTestTask.Features.Shared.Models;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Interfaces;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Models;
 using DfdsTestTask.Features.UserManagement.Persistence.Interfaces;
-using DfdsTestTask.PersistenceShared;
 
 namespace DfdsTestTask.Features.UserManagement.BusinessLogic.Implementations;
 
@@ -40,7 +40,7 @@ public class UserService(
                 VoidResult.Instance
             );
         }
-        catch (PersistenceOperationFailedException ex)
+        catch (PersistenceOperationFailedException)
         {
             return BusinessOperationResult<VoidResult, string>.CreateError(
                 "Failed to store user data"
@@ -48,23 +48,138 @@ public class UserService(
         }
     }
 
-    public Task<BusinessOperationResult<IEnumerable<UserOutboundModel>, string>> ListUsersForBooking(int id)
+    public async Task<BusinessOperationResult<IEnumerable<UserOutboundModel>, string>> ListUsersForBooking(
+        int bookingId, 
+        CancellationToken ct = default
+        )
     {
-        throw new NotImplementedException();
+        try
+        {
+            var projectedBookingId = BookingId.FromValue(bookingId);
+            var userModels = await userRepository.ListUsersByBookingId(projectedBookingId, ct);
+  
+            var userModelProjector = await CreateModelProjector(ct);
+            return BusinessOperationResult<IEnumerable<UserOutboundModel>, string>.CreateSuccess(
+                userModels.Select(userModelProjector)
+                );
+        }
+        catch (EntityInitializationException)
+        {
+            return BusinessOperationResult<IEnumerable<UserOutboundModel>, string>.CreateError(
+                "Invalid booking id was supplied"
+            );
+        }
+        catch (PersistenceOperationFailedException)
+        {
+            return BusinessOperationResult<IEnumerable<UserOutboundModel>, string>.CreateError(
+                "Failed to access users from storage"
+                );
+        }
     }
 
-    public Task<BusinessOperationResult<IEnumerable<UserOutboundModel>, string>> ListUsers(CancellationToken ct = default)
+    public async Task<BusinessOperationResult<IEnumerable<UserOutboundModel>, string>> ListUsers(CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var usersList = await userRepository.ListUsers(ct);
+            var userModelProjector = await CreateModelProjector(ct);
+            var projectedUsers = usersList.Select(userModelProjector);
+            return BusinessOperationResult<IEnumerable<UserOutboundModel>, string>.CreateSuccess(
+                projectedUsers
+            );
+        }
+        catch (PersistenceOperationFailedException)
+        {
+            return BusinessOperationResult<IEnumerable<UserOutboundModel>, string>.CreateError(
+                "Failed to access users from storage"
+            );
+        }
     }
 
-    public Task<BusinessOperationResult<VoidResult, string>> DeleteUser(int userId)
+    public async Task<BusinessOperationResult<VoidResult, string>> DeleteUser(
+        int userId,
+        CancellationToken ct = default
+    )
     {
-        throw new NotImplementedException();
+        try
+        {
+            var projectedUserId = UserId.FromValue(userId);
+            await userRepository.DeleteUserById(projectedUserId, ct);
+            return BusinessOperationResult<VoidResult, string>.CreateSuccess(
+                VoidResult.Instance
+            );
+        }
+        catch (PersistenceOperationFailedException)
+        {
+            return BusinessOperationResult<VoidResult, string>.CreateError(
+                "Failed to delete user from storage"
+            );
+        }
+        catch (EntityInitializationException)
+        { 
+            return BusinessOperationResult<VoidResult, string>.CreateError(
+                "Invalid user id was supplied"
+            );
+        }
     }
 
-    public Task<BusinessOperationResult<VoidResult, string>> UpdateUser(UserOutboundModel userModel)
+    public async Task<BusinessOperationResult<VoidResult, string>> UpdateUser(
+        UserOutboundModel userModel,
+        CancellationToken ct = default
+    )
     {
-        throw new NotImplementedException();
+        try
+        {
+            var resultId = UserId.FromValue(userModel.Id);
+            var targetUser = await userRepository.LoadUserById(resultId, ct);
+            if (targetUser == null)
+            {
+                return BusinessOperationResult<VoidResult, string>.CreateError(
+                    "Failed to update model that not exits"
+                );
+            }
+
+            var symmetricEncryptionContext 
+                = await encryptionConfigurationLoader.LoadConfiguration(ct);
+            var userModelToUpdate = new UserModel
+            {
+                AggregateVersion = targetUser.AggregateVersion,
+                Id = targetUser.Id,
+                EncryptedPassportNumber =
+                    symmetricStringDataEncryptor.Encrypt(userModel.PassportNumber, symmetricEncryptionContext),
+            };
+            
+            await userRepository.UpdateUser(userModelToUpdate, ct);
+
+            return BusinessOperationResult<VoidResult, string>
+                .CreateSuccess(VoidResult.Instance);
+        }
+        catch (PersistenceOperationFailedException)
+        {
+            return BusinessOperationResult<VoidResult, string>.CreateError(
+                "Failed to update user from storage"
+            );
+        }
+        catch (EntityInitializationException)
+        {
+            return BusinessOperationResult<VoidResult, string>.CreateError(
+                "Invalid user id was supplied"
+            );
+        }
+    }
+
+    private async Task<Func<UserModel, UserOutboundModel>> CreateModelProjector(CancellationToken ct)
+    {
+        var encryptionContext = await encryptionConfigurationLoader.LoadConfiguration(ct);
+        return (userModel) =>
+        {
+            var decryptedPassport 
+                = symmetricStringDataEncryptor.Decrypt(userModel.EncryptedPassportNumber, encryptionContext);
+            return new UserOutboundModel
+            {
+                Id = userModel.Id.Value,
+                PassportNumber = decryptedPassport,
+            };
+        };
     }
 }
