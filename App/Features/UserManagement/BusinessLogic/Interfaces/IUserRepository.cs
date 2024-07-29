@@ -1,7 +1,7 @@
 using DfdsTestTask.Features.BookingManagement.BusinessLogic.Models;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Models;
 
-namespace DfdsTestTask.Features.UserManagement.Persistence.Interfaces;
+namespace DfdsTestTask.Features.UserManagement.BusinessLogic.Interfaces;
 
 public interface IUserRepository
 {
@@ -17,4 +17,5 @@ public interface IUserRepository
 
     public Task UpdateUser(UserModel userModel, CancellationToken ct = default);
 
+    Task<int> LoadMatchingUsersCount(IEnumerable<UserId> enumeratedUserIds, CancellationToken ct = default);
 }

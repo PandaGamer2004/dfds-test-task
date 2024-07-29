@@ -1,12 +1,12 @@
 using DfdsTestTask.Exceptions;
 using DfdsTestTask.Features.BookingManagement.BusinessLogic.Models;
+using DfdsTestTask.Features.UserManagement.BusinessLogic.Interfaces;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Models;
-using DfdsTestTask.Features.UserManagement.Persistence.Interfaces;
 using DfdsTestTask.PersistenceShared;
 using DfdsTestTask.PersistenceShared.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace DfdsTestTask.Features.UserManagement.Persistence.Implementations;
+namespace DfdsTestTask.Features.UserManagement.Persistence;
 
 public class UserRepository(
     BookingManagementDbContext bookingManagementDbContext,
@@ -162,6 +162,26 @@ public class UserRepository(
             logger.LogError(ex, ex.Message, ex.StackTrace);
             throw new PersistenceOperationFailedException(
                 "Failed to update user"
+            );
+        }
+    }
+
+    public Task<int> LoadMatchingUsersCount(
+        IEnumerable<UserId> enumeratedUserIds,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var projectedIds = enumeratedUserIds.Select(it => it.Value);
+            return bookingManagementDbContext.Users.CountAsync(
+                it => projectedIds.Contains(it.Id),
+                cancellationToken: ct
+                );
+        }catch (Exception ex)
+        {
+            logger.LogError(ex, ex.Message, ex.StackTrace);
+            throw new PersistenceOperationFailedException(
+                "Failed to load users count"
             );
         }
     }

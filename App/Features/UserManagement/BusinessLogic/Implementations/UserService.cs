@@ -5,7 +5,6 @@ using DfdsTestTask.Features.Encryption.Models;
 using DfdsTestTask.Features.Shared.Models;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Interfaces;
 using DfdsTestTask.Features.UserManagement.BusinessLogic.Models;
-using DfdsTestTask.Features.UserManagement.Persistence.Interfaces;
 
 namespace DfdsTestTask.Features.UserManagement.BusinessLogic.Implementations;
 
@@ -15,8 +14,30 @@ public class UserService(
     IUserRepository userRepository
 ): IUserService
 {
+    public async Task<BusinessOperationResult<UserIdsValidationResult, string>> ValidateUserIds(
+        IEnumerable<UserId> userIds, 
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var enumeratedUserIds = userIds.ToList();
+            int userIdsCount = await userRepository.LoadMatchingUsersCount(enumeratedUserIds, ct);
+            
+            return BusinessOperationResult<UserIdsValidationResult, string>.CreateSuccess(
+                new UserIdsValidationResult
+                {
+                    IsValid = userIdsCount == enumeratedUserIds.Count
+                });
+        }
+        catch (PersistenceOperationFailedException)
+        {
+            return BusinessOperationResult<UserIdsValidationResult, string>.CreateError(
+                "Failed to load users"
+            );
+        }
+    }
 
-    
     public async Task<BusinessOperationResult<VoidResult, string>> CreateUser(UserCreationModel userCreationModel, CancellationToken ct = default)
     {
         try
